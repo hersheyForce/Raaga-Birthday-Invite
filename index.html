@@ -294,7 +294,13 @@
         el.textContent  = `Welcome back! You previously RSVP'd: ${data.rsvpStatus} — update below if needed.`;
         el.style.display = 'block';
         selectRSVP(data.rsvpStatus);
-        if (data.guestCount > 0) { adults = data.guestCount; document.getElementById('adults-val').textContent = adults; }
+        if (data.guestCount    > 0) { adults = data.guestCount;    document.getElementById('adults-val').textContent = adults; }
+        if (data.childrenCount > 0) {
+          kids = data.childrenCount;
+          document.getElementById('kids-val').textContent = kids;
+          document.getElementById('under2-box').style.display = 'block';
+        }
+        if (data.under2Count   > 0) { under2 = data.under2Count;  document.getElementById('under2-val').textContent = under2; }
       }
     } catch (e) { /* silent */ }
   }
