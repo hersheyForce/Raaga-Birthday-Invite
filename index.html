@@ -4,6 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Raaga's 2nd Birthday!</title>
+
+  <!-- WhatsApp / social link preview -->
+  <meta property="og:type"        content="website" />
+  <meta property="og:title"       content="🎉 You're invited to Raaga's 2nd Birthday!" />
+  <meta property="og:description" content="Raaga's turning 2 and we're celebrating! Dinner, dancing, meltdowns — all included. Community pool available — don't forget a change of clothes. June 26 · 6:30 PM · Debary 🎉" />
+  <meta property="og:image"       content="https://chivaya-dev-ed.develop.my.salesforce.com/sfc/p/dL00000xZpvL/a/dL000000EKgP/hCKCk0zz4uOLVXzp6ARHnxpd6Wq_nstFooKW8nIyxm8" />
+  <meta property="og:url"         content="https://hersheyforce.github.io/Raaga-Birthday-Invite/" />
+
   <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -79,6 +87,8 @@
     .counters { display:none; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:13px; }
     .counters.show { display:grid; }
     .counter-box { border:2px solid #C9A96E; border-radius:10px; padding:10px 8px; background:white; text-align:center; }
+    .counter-box.wide { grid-column:1/-1; }
+    .counter-sub { font-size:11px; color:#a07040; margin-bottom:6px; }
     .counter-lbl { font-size:11px; font-weight:700; color:#C9A96E; text-transform:uppercase; letter-spacing:.5px; margin-bottom:7px; }
     .counter-row { display:flex; align-items:center; justify-content:center; gap:10px; }
     .cnt-btn { width:38px; height:38px; border-radius:50%; border:2px solid #8B3A3A; background:white; font-size:20px; font-weight:700; color:#8B3A3A; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .15s; flex-shrink:0; }
@@ -232,11 +242,20 @@
             </div>
           </div>
           <div class="counter-box">
-            <div class="counter-lbl">👶 Kids</div>
+            <div class="counter-lbl">👧 Children</div>
             <div class="counter-row">
               <button class="cnt-btn" onclick="changeCount('kids',-1)">−</button>
               <span class="cnt-val" id="kids-val">0</span>
               <button class="cnt-btn" onclick="changeCount('kids',1)">+</button>
+            </div>
+          </div>
+          <div class="counter-box wide" id="under2-box" style="display:none">
+            <div class="counter-lbl">🍼 Children Under 2</div>
+            <div class="counter-sub">Of the children above, how many are under 2 years old?</div>
+            <div class="counter-row">
+              <button class="cnt-btn" onclick="changeCount('under2',-1)">−</button>
+              <span class="cnt-val" id="under2-val">0</span>
+              <button class="cnt-btn" onclick="changeCount('under2',1)">+</button>
             </div>
           </div>
         </div>
@@ -278,13 +297,12 @@
   const PARTY_TIME  = '6:30 PM Onwards';
   const PARTY_VENUE = '708 Albyon Ct, Debary';
   // ────────────────────────────────────────────────────────
-  // ────────────────────────────────────────────────────────
 
   document.getElementById('party-date').textContent  = PARTY_DATE;
   document.getElementById('party-time').textContent  = PARTY_TIME;
   document.getElementById('party-venue').textContent = PARTY_VENUE;
 
-  let rsvpChoice = null, adults = 1, kids = 0;
+  let rsvpChoice = null, adults = 1, kids = 0, under2 = 0;
 
   // Silent background lookup when last name loses focus
   document.getElementById('last-name').addEventListener('blur', () => {
@@ -320,8 +338,18 @@
   }
 
   function changeCount(type, delta) {
-    if (type === 'adults') { adults = Math.max(1, Math.min(20, adults + delta)); document.getElementById('adults-val').textContent = adults; }
-    else                   { kids   = Math.max(0, Math.min(20, kids   + delta)); document.getElementById('kids-val').textContent   = kids;   }
+    if (type === 'adults') {
+      adults = Math.max(1, Math.min(20, adults + delta));
+      document.getElementById('adults-val').textContent = adults;
+    } else if (type === 'kids') {
+      kids = Math.max(0, Math.min(20, kids + delta));
+      document.getElementById('kids-val').textContent = kids;
+      if (under2 > kids) { under2 = kids; document.getElementById('under2-val').textContent = under2; }
+      document.getElementById('under2-box').style.display = kids > 0 ? 'block' : 'none';
+    } else {
+      under2 = Math.max(0, Math.min(kids, under2 + delta));
+      document.getElementById('under2-val').textContent = under2;
+    }
   }
 
   async function submitRSVP() {
@@ -333,17 +361,18 @@
 
     errEl.style.display = 'none';
     const btn = document.getElementById('submit-btn');
-    btn.disabled = true; btn.innerHTML = '<span>⏳</span> Saving…';
+    btn.disabled = true;
 
     try {
       const res  = await fetch(SF_BASE_URL, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          firstName:      fn,
-          lastName:       ln,
-          rsvpResponse:   rsvpChoice,
-          numberOfGuests: rsvpChoice === 'Not Attending' ? 0 : adults,
-          numberOfKids:   rsvpChoice === 'Not Attending' ? 0 : kids    // wired to Salesforce later
+          firstName:              fn,
+          lastName:               ln,
+          rsvpResponse:           rsvpChoice,
+          numberOfGuests:         rsvpChoice === 'Not Attending' ? 0 : adults,
+          numberOfChildren:       rsvpChoice === 'Not Attending' ? 0 : kids,
+          numberOfChildrenUnder2: rsvpChoice === 'Not Attending' ? 0 : under2
         })
       });
       const data = await res.json();
@@ -364,11 +393,16 @@
     document.getElementById('already').style.display      = 'none';
     document.getElementById('confirmation').style.display = 'block';
     const icons  = { 'Attending':'🎉', 'Maybe':'🤞', 'Not Attending':'💌' };
-    const titles = { 'Attending':`See you there, ${fn}!`, 'Maybe':'Hope you can make it!', 'Not Attending':"We'll miss you!" };
+    const titles = {
+      'Attending':     `Woohoo, ${fn}! See you June 26th! 🎉`,
+      'Maybe':         `Fingers crossed, ${fn}! 🤞`,
+      'Not Attending': `We'll miss you, ${fn}! 💌`
+    };
+    const kidsNote = kids > 0 ? ` + ${kids} kid${kids!==1?'s':''}${under2>0?` (${under2} under 2)`:''}` : '';
     const msgs   = {
-      'Attending':     `You're in for ${adults} adult${adults!==1?'s':''}${kids>0?` + ${kids} kid${kids!==1?'s':''}`:''}. Get ready for a hay-mazing time! 🐄`,
-      'Maybe':         "We've noted your maybe — fingers crossed! 🤞",
-      'Not Attending': "Thanks for letting us know. We'll save you some birthday cake! 🎂"
+      'Attending':     `You're all set — ${adults} adult${adults!==1?'s':''}${kidsNote}. Raaga can't wait to party with you! 🐄`,
+      'Maybe':         "We've noted your maybe! Feel free to update your RSVP anytime if plans change. We'd love to have you there. 🌾",
+      'Not Attending': "Thanks for letting us know! We'll save some birthday cake and a big hug for next time. 🎂"
     };
     document.getElementById('conf-icon').textContent  = icons[choice]  || '🎊';
     document.getElementById('conf-title').textContent = titles[choice] || 'Got it!';
