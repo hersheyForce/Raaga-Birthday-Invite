@@ -301,19 +301,6 @@
           document.getElementById('under2-box').style.display = 'block';
         }
         if (data.under2Count   > 0) { under2 = data.under2Count;  document.getElementById('under2-val').textContent = under2; }
-      } else if (data.familyConflict) {
-        const el = document.getElementById('already');
-        el.textContent   = `Welcome! Looks like ${data.familyContactFirstName} already RSVP'd as ${data.familyRsvpStatus} — update below if needed.`;
-        el.style.display = 'block';
-        document.getElementById('first-name').value = data.familyContactFirstName;
-        selectRSVP(data.familyRsvpStatus);
-        if (data.familyGuestCount    > 0) { adults = data.familyGuestCount;    document.getElementById('adults-val').textContent = adults; }
-        if (data.familyChildrenCount > 0) {
-          kids = data.familyChildrenCount;
-          document.getElementById('kids-val').textContent = kids;
-          document.getElementById('under2-box').style.display = 'block';
-        }
-        if (data.familyUnder2Count   > 0) { under2 = data.familyUnder2Count;  document.getElementById('under2-val').textContent = under2; }
       }
     } catch (e) { /* silent */ }
   }
