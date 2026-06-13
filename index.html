@@ -355,7 +355,7 @@
     btn.disabled = true;
 
     try {
-      const res  = await fetch(SF_BASE_URL, {
+      const res = await fetch(SF_BASE_URL, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           firstName:              fn,
@@ -366,12 +366,11 @@
           numberOfChildrenUnder2: rsvpChoice === 'Not Attending' ? 0 : under2
         })
       });
-      const data = await res.json();
-      if (data.success) {
+      if (res.ok) {
         showConfirmation(rsvpChoice, fn);
       } else {
         btn.disabled = false; btn.innerHTML = '<span>🌾</span> RSVP';
-        errEl.textContent = data.message || 'Something went wrong. Please try again.'; errEl.style.display = 'block';
+        errEl.textContent = 'Something went wrong. Please try again.'; errEl.style.display = 'block';
       }
     } catch (e) {
       btn.disabled = false; btn.innerHTML = '<span>🌾</span> RSVP';
