@@ -291,7 +291,7 @@
       const data = await res.json();
       if (data.found && data.rsvpStatus) {
         const el = document.getElementById('already');
-        el.textContent  = `Welcome back! You previously RSVP'd: ${data.rsvpStatus} — update below if needed.`;
+        el.textContent   = `Welcome back! You previously RSVP'd: ${data.rsvpStatus} — update below if needed.`;
         el.style.display = 'block';
         selectRSVP(data.rsvpStatus);
         if (data.guestCount    > 0) { adults = data.guestCount;    document.getElementById('adults-val').textContent = adults; }
@@ -301,6 +301,18 @@
           document.getElementById('under2-box').style.display = 'block';
         }
         if (data.under2Count   > 0) { under2 = data.under2Count;  document.getElementById('under2-val').textContent = under2; }
+      } else if (data.familyConflict) {
+        const el = document.getElementById('already');
+        el.textContent   = `${data.familyContactFirstName} from your family has already RSVP'd as ${data.familyRsvpStatus}. Your RSVP will replace theirs.`;
+        el.style.display = 'block';
+        selectRSVP(data.familyRsvpStatus);
+        if (data.familyGuestCount    > 0) { adults = data.familyGuestCount;    document.getElementById('adults-val').textContent = adults; }
+        if (data.familyChildrenCount > 0) {
+          kids = data.familyChildrenCount;
+          document.getElementById('kids-val').textContent = kids;
+          document.getElementById('under2-box').style.display = 'block';
+        }
+        if (data.familyUnder2Count   > 0) { under2 = data.familyUnder2Count;  document.getElementById('under2-val').textContent = under2; }
       }
     } catch (e) { /* silent */ }
   }
