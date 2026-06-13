@@ -285,11 +285,15 @@
   });
 
   async function lookupExisting(fn, ln) {
+    console.log('[RSVP] GET lookup:', fn, ln);
     try {
       const res  = await fetch(`${SF_BASE_URL}?firstName=${encodeURIComponent(fn)}&lastName=${encodeURIComponent(ln)}`);
-      if (!res.ok) return;
+      console.log('[RSVP] GET status:', res.status);
+      if (!res.ok) { console.warn('[RSVP] GET non-OK response'); return; }
       const data = await res.json();
+      console.log('[RSVP] GET response:', data);
       if (data.found && data.rsvpStatus) {
+        console.log('[RSVP] Returning guest — pre-filling:', data.rsvpStatus, 'guests:', data.guestCount);
         const el = document.getElementById('already');
         el.textContent   = `Welcome back! You previously RSVP'd: ${data.rsvpStatus} — update below if needed.`;
         el.style.display = 'block';
@@ -301,8 +305,10 @@
           document.getElementById('under2-box').style.display = 'block';
         }
         if (data.under2Count   > 0) { under2 = data.under2Count;  document.getElementById('under2-val').textContent = under2; }
+      } else {
+        console.log('[RSVP] Guest not found — clean form');
       }
-    } catch (e) { /* silent */ }
+    } catch (e) { console.error('[RSVP] GET error:', e); }
   }
 
   function selectRSVP(choice) {
@@ -338,19 +344,23 @@
     if (!fn || !ln) { errEl.textContent = 'Please enter your first and last name.'; errEl.style.display = 'block'; return; }
     if (!rsvpChoice) return;
 
+    const payload = {
+      firstName:              fn,
+      lastName:               ln,
+      rsvpResponse:           rsvpChoice,
+      numberOfGuests:         rsvpChoice === 'Not Attending' ? 0 : adults,
+      numberOfChildren:       rsvpChoice === 'Not Attending' ? 0 : kids,
+      numberOfChildrenUnder2: rsvpChoice === 'Not Attending' ? 0 : under2
+    };
+    console.log('[RSVP] Submitting:', payload);
+
     showConfirmation(rsvpChoice, fn);
 
     fetch(SF_BASE_URL, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        firstName:              fn,
-        lastName:               ln,
-        rsvpResponse:           rsvpChoice,
-        numberOfGuests:         rsvpChoice === 'Not Attending' ? 0 : adults,
-        numberOfChildren:       rsvpChoice === 'Not Attending' ? 0 : kids,
-        numberOfChildrenUnder2: rsvpChoice === 'Not Attending' ? 0 : under2
-      })
-    });
+      body: JSON.stringify(payload)
+    }).then(res => console.log('[RSVP] POST status:', res.status))
+      .catch(e  => console.error('[RSVP] POST error:', e));
   }
 
   function showConfirmation(choice, fn) {
