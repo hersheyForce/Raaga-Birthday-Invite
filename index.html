@@ -343,39 +343,26 @@
     }
   }
 
-  async function submitRSVP() {
+  function submitRSVP() {
     const fn    = document.getElementById('first-name').value.trim();
     const ln    = document.getElementById('last-name').value.trim();
     const errEl = document.getElementById('form-error');
     if (!fn || !ln) { errEl.textContent = 'Please enter your first and last name.'; errEl.style.display = 'block'; return; }
     if (!rsvpChoice) return;
 
-    errEl.style.display = 'none';
-    const btn = document.getElementById('submit-btn');
-    btn.disabled = true;
+    showConfirmation(rsvpChoice, fn);
 
-    try {
-      const res = await fetch(SF_BASE_URL, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          firstName:              fn,
-          lastName:               ln,
-          rsvpResponse:           rsvpChoice,
-          numberOfGuests:         rsvpChoice === 'Not Attending' ? 0 : adults,
-          numberOfChildren:       rsvpChoice === 'Not Attending' ? 0 : kids,
-          numberOfChildrenUnder2: rsvpChoice === 'Not Attending' ? 0 : under2
-        })
-      });
-      if (res.ok) {
-        showConfirmation(rsvpChoice, fn);
-      } else {
-        btn.disabled = false; btn.innerHTML = '<span>🌾</span> RSVP';
-        errEl.textContent = 'Something went wrong. Please try again.'; errEl.style.display = 'block';
-      }
-    } catch (e) {
-      btn.disabled = false; btn.innerHTML = '<span>🌾</span> RSVP';
-      errEl.textContent = 'Could not reach the server. Please check your connection.'; errEl.style.display = 'block';
-    }
+    fetch(SF_BASE_URL, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        firstName:              fn,
+        lastName:               ln,
+        rsvpResponse:           rsvpChoice,
+        numberOfGuests:         rsvpChoice === 'Not Attending' ? 0 : adults,
+        numberOfChildren:       rsvpChoice === 'Not Attending' ? 0 : kids,
+        numberOfChildrenUnder2: rsvpChoice === 'Not Attending' ? 0 : under2
+      })
+    });
   }
 
   function showConfirmation(choice, fn) {
